@@ -1,0 +1,14 @@
+services:
+  frontend:
+    build: ./frontend
+    container_name: movie-rating-frontend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/data
+      - ./frontend:/app
+    environment:
+      - FLASK_ENV=development
+    network_mode: bridge
+
+

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Rating Analysis Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #0b7dda;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.2);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .source-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge-spark {
+            background: #FF6B6B;
+            color: white;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .rating {
+            font-weight: 600;
+            color: #4CAF50;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .movie-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .movie-genres {
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Movie Rating Analysis Dashboard</h1>
+            <p>Spark Data Analysis - Multiple Insights</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('genre')">Genre Analysis</button>
+            <button class="tab-btn" onclick="switchTab('movies')">Top Movies</button>
+        </div>
+
+        <!-- Genre Analysis Tab -->
+        <div id="genre-tab" class="tab-content active">
+            <div class="controls">
+                <button class="btn btn-primary" onclick="loadGenreResults()">Load Genre Analysis</button>
+            </div>
+
+            <div class="card">
+                <h2>Average Ratings per Genre <span class="source-badge badge-spark">SPARK</span></h2>
+                <div id="genre-content">
+                    <div class="loading">Click "Load Genre Analysis" to view data</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Genre Ratings Chart</h2>
+                <div class="chart-container">
+                    <canvas id="genreChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Movies Tab -->
+        <div id="movies-tab" class="tab-content">
+            <div class="controls">
+                <button class="btn btn-primary" onclick="loadTopMovies()">Load Top Movies</button>
+            </div>
+
+            <div class="card">
+                <h2>Top Rated Movies <span class="source-badge badge-spark">SPARK</span></h2>
+                <div id="movies-content">
+                    <div class="loading">Click "Load Top Movies" to view data</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Top Movies Chart</h2>
+                <div class="chart-container">
+                    <canvas id="moviesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let genreData = [];
+        let topMoviesData = [];
+        let genreChart = null;
+        let moviesChart = null;
+
+        function switchTab(tab) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            if (tab === 'genre') {
+                document.getElementById('genre-tab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            } else {
+                document.getElementById('movies-tab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            }
+        }
+
+        async function loadGenreResults() {
+            const contentDiv = document.getElementById('genre-content');
+            contentDiv.innerHTML = '<div class="loading">Loading genre analysis...</div>';
+
+            try {
+                const response = await fetch('/api/spark-results');
+                const result = await response.json();
+
+                if (result.success && result.data.length > 0) {
+                    genreData = result.data;
+                    displayGenreResults(contentDiv, result.data);
+                    updateGenreChart();
+                } else {
+                    contentDiv.innerHTML = `<div class="error">${result.message || 'No data available'}</div>`;
+                }
+            } catch (error) {
+                contentDiv.innerHTML = `<div class="error">Error loading genre results: ${error.message}</div>`;
+            }
+        }
+
+        async function loadTopMovies() {
+            const contentDiv = document.getElementById('movies-content');
+            contentDiv.innerHTML = '<div class="loading">Loading top movies...</div>';
+
+            try {
+                const response = await fetch('/api/top-movies');
+                const result = await response.json();
+
+                if (result.success && result.data.length > 0) {
+                    topMoviesData = result.data;
+                    displayTopMovies(contentDiv, result.data);
+                    updateMoviesChart();
+                } else {
+                    contentDiv.innerHTML = `<div class="error">${result.message || 'No data available'}</div>`;
+                }
+            } catch (error) {
+                contentDiv.innerHTML = `<div class="error">Error loading top movies: ${error.message}</div>`;
+            }
+        }
+
+        function displayGenreResults(container, data) {
+            const totalGenres = data.length;
+            const avgRating = data.reduce((sum, item) => sum + item.average_rating, 0) / totalGenres;
+            const totalRatings = data.reduce((sum, item) => sum + item.total_ratings, 0);
+
+            let html = `
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Genres</div>
+                        <div class="stat-value">${totalGenres}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Average Rating</div>
+                        <div class="stat-value">${avgRating.toFixed(2)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Ratings</div>
+                        <div class="stat-value">${totalRatings.toLocaleString()}</div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Genre</th>
+                                <th>Average Rating</th>
+                                <th>Total Ratings</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            data.forEach(item => {
+                html += `
+                    <tr>
+                        <td><strong>${item.genre}</strong></td>
+                        <td class="rating">${item.average_rating.toFixed(2)} ⭐</td>
+                        <td>${item.total_ratings.toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function displayTopMovies(container, data) {
+            const topRating = data.length > 0 ? data[0].average_rating : 0;
+            const totalMovies = data.length;
+            const totalRatings = data.reduce((sum, item) => sum + item.total_ratings, 0);
+
+            let html = `
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Top Movies</div>
+                        <div class="stat-value">${totalMovies}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Highest Rating</div>
+                        <div class="stat-value">${topRating.toFixed(2)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Ratings</div>
+                        <div class="stat-value">${totalRatings.toLocaleString()}</div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Movie Title</th>
+                                <th>Genres</th>
+                                <th>Rating</th>
+                                <th># Ratings</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            data.forEach((item, index) => {
+                html += `
+                    <tr>
+                        <td><strong>#${index + 1}</strong></td>
+                        <td class="movie-title">${item.title}</td>
+                        <td class="movie-genres">${item.genres}</td>
+                        <td class="rating">${item.average_rating.toFixed(2)} ⭐</td>
+                        <td>${item.total_ratings.toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function updateGenreChart() {
+            const ctx = document.getElementById('genreChart').getContext('2d');
+
+            if (genreChart) {
+                genreChart.destroy();
+            }
+
+            if (genreData.length === 0) {
+                return;
+            }
+
+            const genres = genreData.map(d => d.genre);
+            const ratings = genreData.map(d => d.average_rating);
+
+            genreChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: genres,
+                    datasets: [{
+                        label: 'Average Rating',
+                        data: ratings,
+                        backgroundColor: 'rgba(255, 107, 107, 0.6)',
+                        borderColor: 'rgba(255, 107, 107, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 5,
+                            title: {
+                                display: true,
+                                text: 'Average Rating'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Genre'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Average Ratings per Genre'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateMoviesChart() {
+            const ctx = document.getElementById('moviesChart').getContext('2d');
+
+            if (moviesChart) {
+                moviesChart.destroy();
+            }
+
+            if (topMoviesData.length === 0) {
+                return;
+            }
+
+            // Show top 20 movies
+            const top20 = topMoviesData.slice(0, 20);
+            const titles = top20.map(d => d.title.length > 30 ? d.title.substring(0, 30) + '...' : d.title);
+            const ratings = top20.map(d => d.average_rating);
+
+            moviesChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: titles,
+                    datasets: [{
+                        label: 'Average Rating',
+                        data: ratings,
+                        backgroundColor: 'rgba(78, 205, 196, 0.6)',
+                        borderColor: 'rgba(78, 205, 196, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 5,
+                            title: {
+                                display: true,
+                                text: 'Average Rating'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Movies'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Top 20 Rated Movies'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load genre results on page load
+        window.addEventListener('load', () => {
+            loadGenreResults();
+        });
+    </script>
+</body>
+</html>

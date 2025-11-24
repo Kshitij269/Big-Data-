@@ -1,0 +1,56 @@
+services:
+  spark-master:
+    image: bde2020/spark-master:3.0.0-hadoop3.2
+    container_name: spark-master
+    hostname: spark-master
+    ports:
+      - "8080:8080"   # Spark Master Web UI
+      - "7077:7077"   # Spark Master Port
+    volumes:
+      - ./data:/data
+      - ./spark-apps:/spark-apps
+    environment:
+      - INIT_DAEMON_STEP=setup_spark
+    networks:
+      - spark-network
+
+  spark-worker1:
+    image: bde2020/spark-worker:3.0.0-hadoop3.2
+    container_name: spark-worker1
+    hostname: spark-worker1
+    ports:
+      - "8081:8081"   # Spark Worker Web UI
+    volumes:
+      - ./data:/data
+      - ./spark-apps:/spark-apps
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_WORKER_CORES=2
+    depends_on:
+      - spark-master
+    networks:
+      - spark-network
+
+  spark-worker2:
+    image: bde2020/spark-worker:3.0.0-hadoop3.2
+    container_name: spark-worker2
+    hostname: spark-worker2
+    ports:
+      - "8082:8081"   # Spark Worker Web UI
+    volumes:
+      - ./data:/data
+      - ./spark-apps:/spark-apps
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_WORKER_CORES=2
+    depends_on:
+      - spark-master
+    networks:
+      - spark-network
+
+networks:
+  spark-network:
+    driver: bridge
+
