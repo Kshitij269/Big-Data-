@@ -29,16 +29,11 @@ BGData/
 - At least 8GB RAM available
 - Internet connection for downloading datasets
 
-## Quick Setup (Recommended)
+## Quick Setup
 
-**Windows:**
-```powershell
-.\setup.ps1
-```
 
-**Linux/Mac:**
+**WSL**
 ```bash
-chmod +x setup.sh
 ./setup.sh
 ```
 
@@ -94,7 +89,7 @@ Access the dashboard at: http://localhost:5000
 
 ## Running the Analysis
 
-### Option 1: Run All Analyses (Recommended)
+### Option 1: Run All Analyses
 
 ```bash
 # Run both genre and top movies analyses
@@ -110,6 +105,7 @@ This will run:
 **Genre Analysis:**
 ```bash
 ./scripts/run_spark_job.sh
+```
 
 # Or manually:
 docker exec spark-master /spark/bin/spark-submit \
@@ -203,27 +199,6 @@ docker-compose -f docker-compose-frontend.yml down -v
 - [x] Tabbed interface for different analyses
 - [x] Interactive charts and statistics for both analyses
 
-✅ **Documentation**
-- [x] GitHub repository with all code
-- [x] README with setup instructions
-- [x] Command reference guide
-
-## Troubleshooting
-
-### Issue: Containers not starting
-- **Solution**: Ensure Docker has enough resources (8GB+ RAM recommended)
-- Check: `docker ps -a` to see container status
-- Check logs: `docker logs <container-name>`
-
-### Issue: Cannot access Web UIs
-- **Solution**: Wait 1-2 minutes for services to fully start
-- Verify ports are not in use: `netstat -an | grep <port>`
-
-### Issue: Spark job fails
-- **Solution**: Ensure data files exist in `/data` directory
-- Check file paths in the script
-- Verify Spark workers are connected: Check http://localhost:8080
-
 
 ## Architecture
 
@@ -254,20 +229,3 @@ docker-compose -f docker-compose-frontend.yml down -v
 - **HTML/CSS/JavaScript**: Frontend dashboard
 - **Chart.js**: Data visualization
 - **PySpark**: Python API for Spark
-
-## License
-
-This project is for educational purposes.
-
-## Contributors
-
-- Your Name/Team Name
-
-## GitHub Repository
-
-[Add your repository link here]
-
----
-
-**Note**: This project demonstrates the usage of Apache Spark for big data analysis. It includes two different analyses on the MovieLens dataset: genre ratings and top movies. For production use, additional considerations like security, optimization, and error handling would be required.
-
