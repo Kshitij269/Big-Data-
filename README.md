@@ -108,6 +108,7 @@ This will run:
 ```
 
 # Or manually:
+```bash
 docker exec spark-master /spark/bin/spark-submit \
     --master spark://spark-master:7077 \
     --executor-memory 2g \
